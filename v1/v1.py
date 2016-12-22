@@ -1,4 +1,5 @@
 import requests
+import json
 import base64
 import urllib
 
@@ -36,30 +37,45 @@ class Meta:
     def create(self, asset_type, asset_data):
         post_data = transform_data_to_asset(asset_data)
         url = self.urls["rest"] + '/' + asset_type
-        return requests.post(url=url, data=post_data, headers=self.headers)
+        response = requests.post(url=url, data=json.dumps(post_data), headers=self.headers)
+        return handle_response(response)
 
-    def update(self, oid_token, asset_data, change_comment):
+    def update(self, oid_token, asset_data, change_comment=""):
         oid = Oid(oid_token)
         post_data = transform_data_to_asset(asset_data)
         comment = "?comment={0}".format(urllib.quote(change_comment, safe="")) if change_comment else ""
         url = self.urls["rest"] + "/" + oid.asset_type + "/" + oid.number + comment
-        return requests.post(url=url, data=post_data, headers=self.headers)
+        response = requests.post(url=url, data=json.dumps(post_data), headers=self.headers)
+        return handle_response(response)
 
     def query(self, query):
-        return requests.post(url=self.urls["query"], data=query, headers=self.headers)
+        response = requests.post(url=self.urls["query"], data=json.dumps(query), headers=self.headers)
+        return handle_response(response)
 
     def execute_operation(self, oid_token, operation_name):
         oid = Oid(oid_token)
         url = self.urls["rest"] + "/" + oid.asset_type + "/" + oid.number + "?op=" + operation_name
-        return requests.post(url=url, data={}, headers=self.headers)
+        response = requests.post(url=url, data={}, headers=self.headers)
+        return handle_response(response)
 
     def query_definition(self, asset_type=""):
         url = self.urls["meta"] + "/" + asset_type
-        return requests.get(url=url, headers=self.headers)
+        response = requests.get(url=url, headers=self.headers)
+        return handle_response(response)
 
     def get_activity_stream(self, oid_token):
         url = self.urls["activity_stream"] + "/" + oid_token
-        return requests.get(url=url, headers=self.headers)
+        response = requests.get(url=url, headers=self.headers)
+        return handle_response(response)
+
+
+def handle_response(response):
+    try:
+        response.raise_for_status()
+    except requests.exceptions.HTTPError as ex:
+        ex.strerror = response.content
+        raise ex
+    return response.content
 
 
 def transform_data_to_asset(asset_data):
