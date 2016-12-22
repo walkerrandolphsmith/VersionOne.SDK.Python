@@ -7,7 +7,7 @@ class V1:
     def __init__(self, hostname, instance, port=80, is_https=False):
         self.hostname = hostname
         self.instance = instance
-        self.port = port
+        self.port = str(port)
         self.protocol = "https" if is_https else "http"
 
     def with_access_token(self, token):
