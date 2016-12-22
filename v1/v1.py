@@ -108,7 +108,7 @@ def get_v1_urls(hostname, instance, protocol, port):
 
 
 def get_root_url(hostname, instance, protocol, port):
-    return protocol + "://" + hostname + ":" + port + instance
+    return protocol + "://" + hostname + ":" + port + "/" + instance
 
 
 def create_header_objects(token, is_basic):
